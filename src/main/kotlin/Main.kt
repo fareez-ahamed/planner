@@ -2,7 +2,7 @@ import java.time.*
 
 
 class Task(
-    private val name: String,
+    val name: String,
     private val milestone: Milestone
 ) {
 
@@ -31,8 +31,18 @@ class Task(
             ?: throw Exception("Unable to determine the end date for $taskName")
     }
 
+    infix fun followedBy(task: Task): Task {
+        task.startsAfter(name)
+        return this
+    }
+
+    infix fun dependsOn(task: Task): Task {
+        startsAfter(task.name)
+        return this
+    }
+
     fun print() {
-        println("$startsAt: Task $name starts and ends at $endsAt")
+        println("$startsAt - $endsAt: \t\t$name")
     }
 }
 
@@ -51,19 +61,28 @@ class Milestone(
             startsAt
         }
 
-    fun task(name: String, fn: Task.() -> Unit) {
-        tasks[name] = Task(name, this).apply(fn)
+    fun task(name: String, fn: Task.() -> Unit): Task {
+        Task(name, this).apply(fn).also {
+            tasks[name] = it
+            return it
+        }
     }
 
     fun startsWithProject() {
         startsAt = project.startsAt
     }
 
+    fun startsAfter(milestoneName: String) {
+        startsAt = project.milestones[milestoneName]?.endsAt?.plusDays(1)
+            ?: throw Exception("Unable to determine the end date for $milestoneName")
+    }
+
     fun print() {
-        println("$startsAt: Milestone $name starts and ends at $endsAt")
-        tasks.forEach {
-            it.value.print()
-        }
+        println("$startsAt - $endsAt: \t$name")
+        tasks
+            .map { it.value }
+            .sortedBy { it.startsAt }
+            .forEach { it.print() }
     }
 }
 
@@ -72,7 +91,7 @@ class Project(
     val startsAt: LocalDate
 ) {
 
-    private val milestones: MutableMap<String, Milestone> = mutableMapOf()
+    val milestones: MutableMap<String, Milestone> = mutableMapOf()
 
     val endsAt: LocalDate
         get() = try {
@@ -90,10 +109,11 @@ class Project(
     }
 
     fun print() {
-        println("$startsAt: Project $name starts and ends at $endsAt")
-        milestones.forEach {
-            it.value.print()
-        }
+        println("$startsAt - $endsAt: $name")
+        milestones
+            .map { it.value }
+            .sortedBy { it.startsAt }
+            .forEach { it.print() }
     }
 }
 
@@ -116,6 +136,16 @@ fun configProject() =
             task("Task Two") {
                 startsAfter("Task One")
                 days = 5
+            }
+        }
+        milestone("Phase 2") {
+            startsAfter("Phase 1")
+            task("P2 T1") {
+                days = 3
+            } dependsOn task("P2 T2") {
+                days = 2
+            } followedBy task("P2 T3") {
+                days = 8
             }
         }
     }
