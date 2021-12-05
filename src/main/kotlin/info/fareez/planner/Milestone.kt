@@ -3,12 +3,13 @@ package info.fareez.planner
 import java.time.LocalDate
 
 class Milestone(
-    private val name: String,
+    val name: String,
     private val project: Project
 ) {
     var tasks: MutableMap<String, Task> = mutableMapOf()
 
     var startsAt: LocalDate = project.startsAt
+    var description = ""
 
     val endsAt: LocalDate
         get() = try {
@@ -33,8 +34,10 @@ class Milestone(
             ?: throw Exception("Unable to determine the end date for $milestoneName")
     }
 
+    fun startsAfter(milestone: Milestone) = startsAfter(milestone.name)
+
     fun print() {
-        println("$startsAt - $endsAt: \t$name")
+        printDetails(startsAt, endsAt, name, description, 1)
         tasks
             .map { it.value }
             .sortedBy { it.startsAt }

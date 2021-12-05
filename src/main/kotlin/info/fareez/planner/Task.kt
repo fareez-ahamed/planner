@@ -9,6 +9,8 @@ class Task(
 ) {
 
     var startsAt: LocalDate = milestone.startsAt
+    var description = ""
+
     private var _endsAt: LocalDate? = null
 
     var days: Int = 0
@@ -33,6 +35,8 @@ class Task(
             ?: throw Exception("Unable to determine the end date for $taskName")
     }
 
+    fun startsAfter(task: Task) = startsAfter(task.name)
+
     infix fun followedBy(task: Task): Task {
         task.startsAfter(name)
         return task
@@ -44,6 +48,6 @@ class Task(
     }
 
     fun print() {
-        println("$startsAt - $endsAt: \t\t$name")
+        printDetails(startsAt, endsAt, name, description, 2)
     }
 }

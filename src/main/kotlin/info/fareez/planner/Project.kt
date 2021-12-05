@@ -1,11 +1,13 @@
 package info.fareez.planner
 
+import jdk.jfr.Description
 import java.time.LocalDate
 
 class Project(
     val name: String,
     val startsAt: LocalDate
 ) {
+    var description = ""
 
     val milestones: MutableMap<String, Milestone> = mutableMapOf()
 
@@ -25,7 +27,7 @@ class Project(
     }
 
     fun print() {
-        println("$startsAt - $endsAt: $name")
+        printDetails(startsAt, endsAt, name, description, 0)
         milestones
             .map { it.value }
             .sortedBy { it.startsAt }
@@ -37,4 +39,12 @@ fun project(name: String, startDate: LocalDate, fn: Project.() -> Unit): Project
     return Project(name, startDate).apply {
         fn(this)
     }
+}
+
+fun printDetails(startDate: LocalDate, endDate: LocalDate, name: String, description: String, level: Int) {
+    print("$startDate - $endDate : ")
+    for (i in 0..level) {
+        print("\t")
+    }
+    println("$name - $description")
 }
