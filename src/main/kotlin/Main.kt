@@ -33,12 +33,12 @@ class Task(
 
     infix fun followedBy(task: Task): Task {
         task.startsAfter(name)
-        return this
+        return task
     }
 
     infix fun dependsOn(task: Task): Task {
         startsAfter(task.name)
-        return this
+        return task
     }
 
     fun print() {
